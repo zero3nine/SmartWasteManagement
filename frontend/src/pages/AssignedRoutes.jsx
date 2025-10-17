@@ -99,7 +99,7 @@ function AssignedRoutes() {
                 {route.bins.map((bin) => (
                   <li key={bin._id} className="bin-item">
                     <span>
-                      🗑️ <strong>{bin.location || bin._id}</strong> – {bin.status} ({bin.fillLevel}%)
+                      🗑️ <strong>{bin.location || bin._id}</strong> – {bin._id} {bin.status} ({bin.fillLevel}%)
                     </span>
                     {bin.done || bin.status === "idle" ? (
                       <span className="done-check">✅</span>
