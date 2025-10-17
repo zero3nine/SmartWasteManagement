@@ -11,6 +11,7 @@ import CollectorDashboard from "./pages/CollectorDashboard";
 import AddSpecialRequest from "./pages/AddSpecialRequest";
 
 
+
 function App() {
 
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/special-request" element={<AddSpecialRequest />} />
         <Route path="/collector-home" element={<CollectorRoute><CollectorDashboard /></CollectorRoute>} />
         <Route path="/admin-home" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+
         <Route path="*" element={<HomePage />} />
       </Routes>
     </>
