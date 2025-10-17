@@ -77,6 +77,7 @@ function CollectorDashboard() {
                   <tr>
                     <th>Truck ID</th>
                     <th>License Plate</th>
+                    <th>Location</th>
                     <th>Capacity (kg)</th>
                     <th>Type</th>
                     <th>Status</th>
@@ -87,6 +88,7 @@ function CollectorDashboard() {
                     <tr key={t._id}>
                       <td>{t.id}</td>
                       <td>{t.licensePlate}</td>
+                      <td>{t.location}</td>
                       <td>{t.capacity}</td>
                       <td>{t.type}</td>
                       <td>{t.status}</td>
