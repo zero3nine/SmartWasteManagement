@@ -9,6 +9,31 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// CREATE A PAYMENT (for bin or special request)
+router.post("/", async (req, res) => {
+  try {
+    const { userId, binId, specialRequestId, amount, currency } = req.body;
+
+    if (!userId || !amount) {
+      return res.status(400).json({ message: "userId and amount are required" });
+    }
+
+    const newPayment = await Payment.create({
+      userId,
+      binId: binId || null,
+      specialRequestId: specialRequestId || null,
+      amount,
+      currency: currency || "INR",
+    });
+
+    res.status(201).json(newPayment);
+  } catch (err) {
+    console.error("Failed to create payment:", err);
+    res.status(500).json({ message: "Failed to create payment", error: err.message });
+  }
+});
+
+
 // CREATE PAYMENT INTENT 
 router.post("/create-payment-intent", async (req, res) => {
   try {

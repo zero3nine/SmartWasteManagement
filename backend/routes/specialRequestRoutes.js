@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const SpecialRequest = require("../models/SpecialRequest");
+const Payment = require("../models/Payment"); 
 
 // POST /api/special-request → create a new special request
 router.post("/", async (req, res) => {
@@ -52,16 +53,41 @@ router.get("/:userId", async (req, res) => {
 });
 
 // PATCH /api/special-request/:id → update request status or details
+// PATCH /api/special-request/:id → update request status or details
 router.patch("/:id", async (req, res) => {
   try {
-    const updatedRequest = await SpecialRequest.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    if (!updatedRequest) return res.status(404).json({ message: "Request not found" });
-    res.json(updatedRequest);
+    const { status, cost } = req.body;
+
+    const request = await SpecialRequest.findById(req.params.id);
+    if (!request) return res.status(404).json({ message: "Request not found" });
+
+    // Update status and cost
+    request.status = status || request.status;
+    request.cost = cost ?? request.cost;
+    await request.save();
+
+    // ✅ If approved and cost > 0, create a Payment
+    if (status === "Approved" && cost && cost > 0) {
+      const existingPayment = await Payment.findOne({ specialRequestId: request._id });
+      if (!existingPayment) {
+        await Payment.create({
+          userId: request.userId,            // user who made the request
+          binId: null,                       // no bin linked
+          amount: cost,
+          status: "unpaid",
+          description: `Special Request: ${request.type}`,
+          specialRequestId: request._id,     // link to special request
+        });
+      }
+    }
+
+    res.json(request);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to update request", error: err.message });
   }
 });
+
 
 // DELETE /api/special-request/:id → delete a request
 router.delete("/:id", async (req, res) => {

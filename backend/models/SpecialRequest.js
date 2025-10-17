@@ -11,6 +11,7 @@ const specialRequestSchema = new mongoose.Schema(
     name: { type: String },
     scheduledDate: { type: Date, required: true },
     status: { type: String, enum: ["Pending", "Approved", "Rejected", "Scheduled", "Completed"], default: "Pending" },
+    cost: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
