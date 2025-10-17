@@ -1,70 +1,95 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import AddTruck from "./AddTruck";
 import axios from "axios";
-import "../styles/dashboardHome.css";
+import "../styles/dashboardCollector.css";
 
 function CollectorDashboard() {
-  const navigate = useNavigate();
-  const [assignedRequests, setAssignedRequests] = useState([]);
+
+  const userId = localStorage.getItem("userId");
+
+  const [activeTab, setActiveTab] = useState("addTruck");
+  const [trucks, setTrucks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const collectorId = localStorage.getItem("userId"); // assuming collector login
+
+  // Fetch existing trucks
+  const fetchTrucks = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`http://localhost:5000/api/collector/trucks/${userId}`);
+      setTrucks(res.data);
+    } catch (err) {
+      console.error("Error fetching trucks:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchCollectorData = async () => {
-      try {
-        const res = await axios.get(`http://localhost:5000/api/special-requests/collector/${collectorId}`);
-        setAssignedRequests(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchTrucks();
+  }, []);
 
-    fetchCollectorData();
-  }, [collectorId]);
-
-  if (loading) return <p className="loading">Loading your dashboard...</p>;
+  const addTruckHandler = (newTruck) => {
+    setTrucks([newTruck, ...trucks]);
+  };
 
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
         <h1>Collector Dashboard</h1>
-        <p>View and manage assigned pickups</p>
+        <p>Manage your trucks and collection tasks.</p>
       </header>
 
-      <section className="section-card">
-        <h2>Assigned Special Pickup Requests</h2>
-        {assignedRequests.length > 0 ? (
-          <table className="requests-table">
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Scheduled Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {assignedRequests.map((r) => (
-                <tr key={r._id}>
-                  <td>{r.userId}</td>
-                  <td>{r.type}</td>
-                  <td className={`status ${r.status.toLowerCase()}`}>{r.status}</td>
-                  <td>{r.scheduledDate ? new Date(r.scheduledDate).toLocaleDateString() : "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>No requests assigned yet.</p>
-        )}
-      </section>
-
-      <div className="quick-actions">
-        <button className="action-btn" onClick={() => navigate("/collector/update-status")}>
-          ✅ Update Request Status
+      {/* Tabs */}
+      <div className="collector-tabs">
+        <button
+          className={`tab-btn ${activeTab === "addTruck" ? "active" : ""}`}
+          onClick={() => setActiveTab("addTruck")}
+        >
+          Add Truck
         </button>
+        <button
+          className={`tab-btn ${activeTab === "trucksList" ? "active" : ""}`}
+          onClick={() => setActiveTab("trucksList")}
+        >
+          View Trucks
+        </button>
+      </div>
+
+      <div className="tab-content">
+        {activeTab === "addTruck" && <AddTruck addTruck={addTruckHandler} />}
+        {activeTab === "trucksList" && (
+          <div className="section-card">
+            <h2>Registered Trucks</h2>
+            {loading ? (
+              <p>Loading trucks...</p>
+            ) : trucks.length > 0 ? (
+              <table className="requests-table">
+                <thead>
+                  <tr>
+                    <th>Truck ID</th>
+                    <th>License Plate</th>
+                    <th>Capacity (kg)</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {trucks.map((t) => (
+                    <tr key={t._id}>
+                      <td>{t.id}</td>
+                      <td>{t.licensePlate}</td>
+                      <td>{t.capacity}</td>
+                      <td>{t.type}</td>
+                      <td>{t.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p>No trucks registered yet.</p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

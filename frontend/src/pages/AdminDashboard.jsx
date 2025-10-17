@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import AddCollectionBin from "./AddCollectionBin";
+import GenerateRoutes from "./GenerateRoutes";
 import "../styles/dashboardAdmin.css";
 
 function AdminDashboard() {
   const [bins, setBins] = useState([]);
+  const [trucks, setTrucks] = useState([]);
   const [activeTab, setActiveTab] = useState("addBin");
   const [loadingBins, setLoadingBins] = useState(true);
 
@@ -21,19 +23,25 @@ function AdminDashboard() {
     }
   };
 
+  // Fetch trucks from backend
+  const fetchTrucks = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/collector/trucks");
+      setTrucks(res.data);
+    } catch (err) {
+      console.error("Error fetching trucks:", err);
+    }
+  };
+
   // Fetch bins on mount
   useEffect(() => {
     fetchBins();
+    fetchTrucks();
   }, []);
 
   // Add a new bin and refresh the list
-  const addBin = async (newBin) => {
-    try {
-      const res = await axios.post("http://localhost:5000/api/admin/bins", newBin);
-      setBins([res.data, ...bins]); // immediately update table
-    } catch (err) {
-      console.error("Failed to add bin:", err);
-    }
+  const addBinHandler = (newBin) => {
+    setBins([newBin, ...bins]);
   };
 
   return (
@@ -57,10 +65,16 @@ function AdminDashboard() {
         >
           View Bins
         </button>
+        <button
+          className={`tab-btn ${activeTab === "generateRoutes" ? "active" : ""}`}
+          onClick={() => setActiveTab("generateRoutes")}
+        >
+          Generate Routes
+        </button>
       </div>
 
       <div className="tab-content">
-        {activeTab === "addBin" && <AddCollectionBin addBin={addBin} />}
+        {activeTab === "addBin" && <AddCollectionBin addBin={addBinHandler} />}
         {activeTab === "binsList" && (
           <div className="section-card">
             <h2>Current Bins</h2>
@@ -72,8 +86,10 @@ function AdminDashboard() {
                   <tr>
                     <th>Bin ID</th>
                     <th>Location</th>
+                    <th>Size (liters)</th>
                     <th>Fill Level</th>
                     <th>Type</th>
+                    <th>Status</th>
                     <th>Last Collected</th>
                   </tr>
                 </thead>
@@ -82,8 +98,10 @@ function AdminDashboard() {
                     <tr key={b._id}>
                       <td>{b.id}</td>
                       <td>{b.location}</td>
+                      <td>{b.size}</td>
                       <td>{b.fillLevel}%</td>
                       <td>{b.type}</td>
+                      <td>{b.status}</td>
                       <td>{new Date(b.lastCollected).toLocaleString()}</td>
                     </tr>
                   ))}
@@ -93,6 +111,9 @@ function AdminDashboard() {
               <p>No bins added yet.</p>
             )}
           </div>
+        )}
+        {activeTab === "generateRoutes" && (
+          <GenerateRoutes bins={bins} trucks={trucks} refreshBins={fetchBins} refreshTrucks={fetchTrucks} />
         )}
       </div>
     </div>
