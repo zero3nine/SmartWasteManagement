@@ -4,6 +4,7 @@ const Truck = require("../models/Truck");
 const Route = require("../models/Route");
 const SpecialRequest = require("../models/SpecialRequest");
 const Bin = require("../models/Bin");
+const Payment = require("../models/Payment");
 
 // GET all trucks
 router.get("/trucks", async (req, res) => {
@@ -89,13 +90,27 @@ router.patch("/bins/:binId/done", async (req, res) => {
       { new: true }
     );
     if (!updatedBin) return res.status(404).json({ message: "Bin not found" });
+
+    const amount = updatedBin.size * 10;
+
+    if (updatedBin.userId) {
+      await Payment.create({
+        userId: updatedBin.userId,
+        binId: updatedBin._id,
+        amount,
+      });
+      console.log(`💰 Payment record created for user ${updatedBin.userId}, Rs ${amount}`);
+    } else {
+      console.warn("⚠️ Bin has no userId, payment not created.");
+    }
+
+    // Step 3: Respond back to frontend
     res.json(updatedBin);
   } catch (err) {
     console.error("Error marking bin done:", err);
     res.status(500).json({ message: "Failed to update bin", error: err.message });
   }
 });
-
 
 // PATCH finish route
 router.patch("/routes/finish/:routeId", async (req, res) => {

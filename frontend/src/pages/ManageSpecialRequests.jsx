@@ -40,10 +40,19 @@ function ManageSpecialRequests() {
     }
 
     try {
-      await axios.patch(`http://localhost:5000/api/special-request/${costPopup.requestId}`, {
+      const res = await axios.patch(`http://localhost:5000/api/special-request/${costPopup.requestId}`, {
         status: "Approved",
         cost: parseFloat(costValue),
       });
+
+      const updatedRequest = res.data;
+
+      await axios.post("http://localhost:5000/api/payments", {
+      userId: updatedRequest.userId,
+      specialRequestId: updatedRequest._id,
+      amount: parseFloat(costValue),
+      currency: "LKR",
+    });
 
       setRequests((prev) =>
         prev.map((r) =>
@@ -55,6 +64,8 @@ function ManageSpecialRequests() {
 
       setCostPopup(null);
       setCostValue("");
+
+     alert("Special request approved. Payment created for the user.");
     } catch (err) {
       console.error("Failed to approve request with cost:", err);
       alert("Failed to approve request. Try again.");

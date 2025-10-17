@@ -1,4 +1,4 @@
-require('dotenv').config({ path: './backend/.env', debug: true });
+require('dotenv').config({ path: './.env', debug: true });
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth");
 const specialRequestRoutes = require("./routes/specialRequestRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const collectorRoutes = require("./routes/collectorRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const userRoutes = require("./routes/userRoutes")
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +28,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/special-request", specialRequestRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/collector", collectorRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/users", userRoutes);
+
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {

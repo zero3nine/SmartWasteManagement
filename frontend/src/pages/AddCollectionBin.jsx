@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../styles/addCollectionBin.css";
 
@@ -11,14 +11,28 @@ function AddCollectionBin({ addBin }) {
     type: "General Waste",
     status: "Idle",
     pickupTruckId: "",
-    lastCollected: new Date().toISOString().slice(0, 10), // today
+    lastCollected: new Date().toISOString().slice(0, 10),
+    userId: "", // attach user
   });
 
+  const [users, setUsers] = useState([]); // list of users
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Handle input changes
+  // Fetch users when component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/api/users"); // your backend endpoint to get all users
+        setUsers(res.data);
+      } catch (err) {
+        console.error("Failed to fetch users:", err);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -26,15 +40,13 @@ function AddCollectionBin({ addBin }) {
     });
   };
 
-  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Simple validation
-    if (!formData.id || !formData.location) {
-      setError("Bin ID and Location are required.");
+    if (!formData.id || !formData.location || !formData.userId) {
+      setError("Bin ID, Location, and User are required.");
       return;
     }
 
@@ -47,7 +59,7 @@ function AddCollectionBin({ addBin }) {
 
     try {
       const res = await axios.post("http://localhost:5000/api/admin/bins", formData);
-      addBin(res.data); // Update parent state
+      addBin(res.data);
       setSuccess("Bin added successfully!");
       setFormData({
         id: "",
@@ -58,6 +70,7 @@ function AddCollectionBin({ addBin }) {
         status: "Idle",
         pickupTruckId: "",
         lastCollected: new Date().toISOString().slice(0, 10),
+        userId: "",
       });
     } catch (err) {
       console.error(err);
@@ -123,6 +136,21 @@ function AddCollectionBin({ addBin }) {
         >
           <option value="General Waste">General Waste</option>
           <option value="Special Waste">Special Waste</option>
+        </select>
+
+        <label>Assign to User</label>
+        <select
+          name="userId"
+          className="select-field"
+          value={formData.userId}
+          onChange={handleChange}
+        >
+          <option value="">-- Select User --</option>
+          {users.map((user) => (
+            <option key={user._id} value={user._id}>
+              {user.username} ({user.email})
+            </option>
+          ))}
         </select>
 
         <label>Last Collected Date</label>
