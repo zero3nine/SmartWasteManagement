@@ -9,7 +9,9 @@ function ManageSpecialRequests() {
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [confirmPopup, setConfirmPopup] = useState(null); // for edit confirmation
+  const [costPopup, setCostPopup] = useState(null); // For entering cost
+  const [costValue, setCostValue] = useState("");   // Cost input value
+  const [confirmPopup, setConfirmPopup] = useState(null); // For editing status
 
   // Fetch all requests
   const fetchRequests = async () => {
@@ -30,26 +32,57 @@ function ManageSpecialRequests() {
     fetchRequests();
   }, []);
 
-  // Approve or Reject request
-  const updateRequestStatus = async (id, status) => {
+  // Approve with cost
+  const approveWithCost = async () => {
+    if (!costValue || isNaN(costValue)) {
+      alert("Please enter a valid cost.");
+      return;
+    }
+
     try {
-      await axios.patch(`http://localhost:5000/api/special-request/${id}`, { status });
+      await axios.patch(`http://localhost:5000/api/special-request/${costPopup.requestId}`, {
+        status: "Approved",
+        cost: parseFloat(costValue),
+      });
+
       setRequests((prev) =>
-        prev.map((r) => (r._id === id ? { ...r, status } : r))
+        prev.map((r) =>
+          r._id === costPopup.requestId
+            ? { ...r, status: "Approved", cost: parseFloat(costValue) }
+            : r
+        )
       );
-      if (selectedRequest && selectedRequest._id === id) {
-        setSelectedRequest({ ...selectedRequest, status });
-      }
-      setConfirmPopup(null);
+
+      setCostPopup(null);
+      setCostValue("");
     } catch (err) {
-      console.error("Failed to update request status:", err);
+      console.error("Failed to approve request with cost:", err);
+      alert("Failed to approve request. Try again.");
     }
   };
 
-  // Toggle status (Approved <-> Rejected)
+  // Reject request
+  const rejectRequest = async (id) => {
+    try {
+      await axios.patch(`http://localhost:5000/api/special-request/${id}`, { status: "Rejected" });
+      setRequests((prev) =>
+        prev.map((r) => (r._id === id ? { ...r, status: "Rejected" } : r))
+      );
+    } catch (err) {
+      console.error("Failed to reject request:", err);
+      alert("Failed to reject request. Try again.");
+    }
+  };
+
+  // Toggle status for edit popup
   const toggleStatus = (request) => {
     const newStatus = request.status === "Approved" ? "Rejected" : "Approved";
-    updateRequestStatus(request._id, newStatus);
+    if (newStatus === "Approved") {
+      setCostPopup({ requestId: request._id, currentCost: request.cost || "" });
+    } else {
+      rejectRequest(request._id);
+      setConfirmPopup(null);
+    }
   };
 
   // Filter requests
@@ -133,7 +166,7 @@ function ManageSpecialRequests() {
                         className="approve-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          updateRequestStatus(r._id, "Approved");
+                          setCostPopup({ requestId: r._id, currentCost: r.cost || "" });
                         }}
                       >
                         Approve
@@ -142,7 +175,7 @@ function ManageSpecialRequests() {
                         className="reject-btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          updateRequestStatus(r._id, "Rejected");
+                          rejectRequest(r._id);
                         }}
                       >
                         Reject
@@ -156,7 +189,7 @@ function ManageSpecialRequests() {
                         setConfirmPopup(r);
                       }}
                     >
-                      Edit
+                      Edit Status
                     </button>
                   )}
                 </td>
@@ -171,44 +204,27 @@ function ManageSpecialRequests() {
         <div className="popup-overlay" onClick={() => setSelectedRequest(null)}>
           <div className="popup-content" onClick={(e) => e.stopPropagation()}>
             <h2>Request Details</h2>
-            <p>
-              <strong>Name:</strong> {selectedRequest.name || "N/A"}
-            </p>
-            <p>
-              <strong>Contact:</strong> {selectedRequest.contact || "N/A"}
-            </p>
-            <p>
-              <strong>Type:</strong> {selectedRequest.type}
-            </p>
-            <p>
-              <strong>Description:</strong> {selectedRequest.description}
-            </p>
-            <p>
-              <strong>Estimated Size:</strong> {selectedRequest.estimatedSize || "N/A"}
-            </p>
-            <p>
-              <strong>Address:</strong> {selectedRequest.address || "N/A"}
-            </p>
-            <p>
-              <strong>Scheduled Date:</strong>{" "}
-              {new Date(selectedRequest.scheduledDate).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Status:</strong> {selectedRequest.status}
-            </p>
+            <p><strong>Name:</strong> {selectedRequest.name || "N/A"}</p>
+            <p><strong>Contact:</strong> {selectedRequest.contact || "N/A"}</p>
+            <p><strong>Type:</strong> {selectedRequest.type}</p>
+            <p><strong>Description:</strong> {selectedRequest.description}</p>
+            <p><strong>Estimated Size:</strong> {selectedRequest.estimatedSize || "N/A"}</p>
+            <p><strong>Address:</strong> {selectedRequest.address || "N/A"}</p>
+            <p><strong>Scheduled Date:</strong> {new Date(selectedRequest.scheduledDate).toLocaleDateString()}</p>
+            <p><strong>Status:</strong> {selectedRequest.status}</p>
 
             <div className="popup-actions">
               {selectedRequest.status === "Pending" ? (
                 <>
                   <button
                     className="approve-btn"
-                    onClick={() => updateRequestStatus(selectedRequest._id, "Approved")}
+                    onClick={() => setCostPopup({ requestId: selectedRequest._id, currentCost: selectedRequest.cost || "" })}
                   >
                     Approve
                   </button>
                   <button
                     className="reject-btn"
-                    onClick={() => updateRequestStatus(selectedRequest._id, "Rejected")}
+                    onClick={() => rejectRequest(selectedRequest._id)}
                   >
                     Reject
                   </button>
@@ -229,19 +245,35 @@ function ManageSpecialRequests() {
         </div>
       )}
 
-      {/* Confirmation Popup */}
+      {/* Popup for entering cost */}
+      {costPopup && (
+        <div className="popup-overlay" onClick={() => setCostPopup(null)}>
+          <div className="popup-content small" onClick={(e) => e.stopPropagation()}>
+            <h3>Approve Special Request</h3>
+            <p>Enter the cost for this special request:</p>
+            <input
+              type="number"
+              value={costValue}
+              onChange={(e) => setCostValue(e.target.value)}
+              placeholder="Enter cost"
+            />
+            <div className="popup-actions">
+              <button className="approve-btn" onClick={approveWithCost}>Approve</button>
+              <button className="close-btn" onClick={() => setCostPopup(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Popup for editing status */}
       {confirmPopup && (
         <div className="popup-overlay" onClick={() => setConfirmPopup(null)}>
           <div className="popup-content small" onClick={(e) => e.stopPropagation()}>
             <h3>Change Request Status?</h3>
             <p>
-              This request is currently <strong>{confirmPopup.status}</strong>.
-              <br />
+              This request is currently <strong>{confirmPopup.status}</strong>.<br />
               Do you want to change it to{" "}
-              <strong>
-                {confirmPopup.status === "Approved" ? "Rejected" : "Approved"}
-              </strong>
-              ?
+              <strong>{confirmPopup.status === "Approved" ? "Rejected" : "Approved"}</strong>?
             </p>
             <div className="popup-actions">
               <button

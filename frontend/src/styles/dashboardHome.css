@@ -63,6 +63,22 @@
   font-weight: 600;
 }
 
+.status.scheduled {
+  color: rgb(77, 77, 248);
+  font-weight: 600;
+}
+
+status.completed {
+  color: rgb(126, 125, 125);
+  font-weight: 600;
+}
+
+.status.approved {
+  color: green;
+  font-weight: 600;
+}
+
+
 .status.pending {
   color: orange;
   font-weight: 600;

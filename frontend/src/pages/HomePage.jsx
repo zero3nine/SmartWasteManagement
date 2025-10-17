@@ -67,7 +67,7 @@ function HomePage() {
         </button>
         <button
           className={`action-btn ${!isResident ? "disabled-btn" : ""}`}
-          onClick={() => isResident && navigate("/pay-bill")}
+          onClick={() => isResident && navigate("/view-bill")}
           disabled={!isResident}
         >
           💳 Pay Your Bill
