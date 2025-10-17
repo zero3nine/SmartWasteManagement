@@ -68,27 +68,6 @@ h2 {
   color: #111;
 }
 
-/* Table for Bins / Routes */
-.requests-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-
-.requests-table th,
-.requests-table td {
-  padding: 0.8rem 1rem;
-  border-bottom: 1px solid #ddd;
-}
-
-.requests-table th {
-  background: #f0f0f0;
-  font-weight: 600;
-}
-
-.requests-table tr:hover {
-  background: #f9f9f9;
-}
 
 /* Form Buttons */
 .btn,

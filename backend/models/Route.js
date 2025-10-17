@@ -11,6 +11,13 @@ const routeSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: "Bin",
       required: true,
+      unique: true,
+    },
+  ],
+  specialRequests: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SpecialRequest",
     },
   ],
   createdAt: {

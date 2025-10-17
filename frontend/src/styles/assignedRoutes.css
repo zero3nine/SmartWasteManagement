@@ -27,6 +27,22 @@
   border-radius: 8px;
 }
 
+.special-request-list {
+  list-style: none;
+  padding: 0;
+}
+
+.special-request-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+
 .done-btn {
   background-color: #28a745;
   color: white;
