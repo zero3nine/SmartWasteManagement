@@ -6,6 +6,7 @@ function AddTruck({ addTruck }) {
   const [formData, setFormData] = useState({
     id: "",
     licensePlate: "",
+    location: "",
     capacity: "",
     type: "General",
     status: "Available",
@@ -42,6 +43,7 @@ function AddTruck({ addTruck }) {
       setFormData({
         id: "",
         licensePlate: "",
+        location: "",
         capacity: "",
         type: "General",
         status: "Available",
@@ -78,6 +80,16 @@ function AddTruck({ addTruck }) {
           value={formData.licensePlate}
           onChange={handleChange}
           placeholder="Enter License Plate"
+        />
+
+        <label>Location</label>
+        <input
+          type="text"
+          name="location"
+          className="input-field"
+          value={formData.location}
+          onChange={handleChange}
+          placeholder="Enter Location"
         />
 
         <label>Capacity (kg)</label>
