@@ -7,6 +7,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth");
 const specialRequestRoutes = require("./routes/specialRequestRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const collectorRoutes = require("./routes/collectorRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,7 @@ app.get("/api/hello", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/special-request", specialRequestRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/collector", collectorRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGO_URI, {

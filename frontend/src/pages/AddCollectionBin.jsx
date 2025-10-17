@@ -85,6 +85,18 @@ function AddCollectionBin({ addBin }) {
           placeholder="Enter location/address"
         />
 
+        <label>Size (liters)</label>
+        <input
+          type="number"
+          name="size"
+          className="input-field"
+          value={formData.size}
+          onChange={handleChange}
+          placeholder="Enter size in liters"
+          min="0"
+          max="1000"
+        />
+
         <label>Fill Level (%)</label>
         <input
           type="number"
