@@ -2,11 +2,24 @@ const express = require("express");
 const router = express.Router();
 const Bin = require("../models/Bin");
 const Route = require("../models/Route");
+const Payment = require("../models/Payment");
+
 
 // POST /api/admin/bins → add a new bin
 router.post("/bins", async (req, res) => {
   try {
     const bin = await Bin.create(req.body);
+
+     if (bin.userId) { // if bin is assigned to a user
+      const amount = (bin.fillLevel/100) * bin.size;
+      await Payment.create({
+        userId: bin.userId,
+        binId: bin._id,
+        amount,
+        status: "unpaid",
+      });
+    }
+
     res.status(201).json(bin);
   } catch (err) {
     console.error(err);
@@ -28,6 +41,13 @@ router.get("/bins", async (req, res) => {
 router.patch("/bins/:id", async (req, res) => {
   try {
     const updatedBin = await Bin.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+     const newAmount = (updatedBin.fillLevel/100) * updatedBin.size;
+    await Payment.updateMany(
+      { binId: updatedBin._id, status: "unpaid" },
+      { $set: { amount: newAmount } }
+    );
+
     res.json(updatedBin);
   } catch (err) {
     res.status(500).json({ message: "Failed to update bin." });

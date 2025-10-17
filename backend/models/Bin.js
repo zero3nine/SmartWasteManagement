@@ -9,6 +9,7 @@ const BinSchema = new mongoose.Schema({
   status: { type: String, enum: ["Idle", "Scheduled"], default: "Idle" },
   pickupTruckId: { type: String, default: null },
   lastCollected: { type: Date, default: Date.now },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Bin", BinSchema);

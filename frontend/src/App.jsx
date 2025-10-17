@@ -9,7 +9,7 @@ import AdminRoute from "./components/AdminRoute";
 import AdminDashboard from "./pages/AdminDashboard";
 import CollectorDashboard from "./pages/CollectorDashboard";
 import AddSpecialRequest from "./pages/AddSpecialRequest";
-
+import PaymentsPage from "./pages/PaymentPage";
 
 function App() {
 
@@ -24,6 +24,7 @@ function App() {
         <Route path="/collector-home" element={<CollectorRoute><CollectorDashboard /></CollectorRoute>} />
         <Route path="/admin-home" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="*" element={<HomePage />} />
+        <Route path="/pay-bill" element={<PaymentsPage />} />
       </Routes>
     </>
   );

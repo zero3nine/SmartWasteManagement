@@ -1,0 +1,152 @@
+/* ------------------ Payments Page ------------------ */
+.payments-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.payment-section {
+  margin-bottom: 2rem;
+}
+
+.payment-section h4 {
+  margin-bottom: 1rem;
+  color: #555;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.payments-table th,
+.payments-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.payments-table th {
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+.payments-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: capitalize;
+  font-size: 0.9rem;
+}
+
+.status.unpaid {
+  background-color: #ffe0e0;
+  color: #d9534f;
+}
+
+.status.paid {
+  background-color: #e0ffe0;
+  color: #28a745;
+}
+
+.btn {
+  padding: 0.45rem 0.85rem;
+  background-color: #007bff;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #0056b3;
+}
+
+.btn:disabled {
+  background-color: #a0c5f2;
+  cursor: not-allowed;
+}
+
+.loading {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.error-message {
+  color: #d9534f;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+
+/* ------------------ Stripe Payment Form Modal ------------------ */
+.payment-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.payment-form-container {
+  background-color: white;
+  padding: 2rem 2rem;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 400px;
+  max-width: 90%;
+}
+
+.payment-form-container h4 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #333;
+}
+
+/* Stripe element wrappers for multi-line layout */
+.stripe-row {
+  margin-bottom: 15px;
+}
+
+.StripeElement {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  font-size: 1rem;
+}
+
+/* Payment buttons */
+.payment-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
