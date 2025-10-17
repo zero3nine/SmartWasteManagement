@@ -18,9 +18,9 @@ router.get("/trucks", async (req, res) => {
 
 // POST add a new truck
 router.post("/trucks", async (req, res) => {
-  const { id, licensePlate, location, capacity, type, status, userId } = req.body;
+  const { id, licensePlate, capacity, type, status, userId, address } = req.body;
 
-  if (!id || !licensePlate || !location || !capacity || !userId) {
+  if (!id || !licensePlate || !capacity || !userId) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
@@ -28,7 +28,7 @@ router.post("/trucks", async (req, res) => {
     const existing = await Truck.findOne({ id });
     if (existing) return res.status(400).json({ message: "Truck ID already exists." });
 
-    const newTruck = new Truck({ id, licensePlate, location, capacity, type, status, userId });
+    const newTruck = new Truck({ id, licensePlate, capacity, type, status, userId, address });
     await newTruck.save();
     res.status(201).json(newTruck);
   } catch (err) {

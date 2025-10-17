@@ -6,11 +6,11 @@ function AddTruck({ addTruck }) {
   const [formData, setFormData] = useState({
     id: "",
     licensePlate: "",
-    location: "",
     capacity: "",
     type: "General",
     status: "Available",
     userId: localStorage.getItem("userId"),
+    address: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -42,11 +42,11 @@ function AddTruck({ addTruck }) {
       setFormData({
         id: "",
         licensePlate: "",
-        location: "",
         capacity: "",
         type: "General",
         status: "Available",
         userId: localStorage.getItem("userId"),
+        address: "",
       });
     } catch (err) {
       console.error(err);
@@ -80,16 +80,6 @@ function AddTruck({ addTruck }) {
           placeholder="Enter License Plate"
         />
 
-        <label>Location</label>
-        <input
-          type="text"
-          name="location"
-          className="input-field"
-          value={formData.location}
-          onChange={handleChange}
-          placeholder="Enter Location"
-        />
-
         <label>Capacity (kg)</label>
         <input
           type="number"
@@ -98,6 +88,16 @@ function AddTruck({ addTruck }) {
           value={formData.capacity}
           onChange={handleChange}
           placeholder="Enter Capacity"
+        />
+
+        <label>Address</label>
+        <input
+          type="text"
+          name="address"
+          className="input-field"
+          value={formData.address}
+          onChange={handleChange}
+          placeholder="Enter truck base/current address"
         />
 
         <label>Type</label>
