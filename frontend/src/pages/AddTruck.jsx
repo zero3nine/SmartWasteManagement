@@ -10,12 +10,21 @@ function AddTruck({ addTruck }) {
     type: "general",
     status: "available",
     userId: localStorage.getItem("userId"),
-    latitude: "",
-    longitude: "",
+    address: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const geocodeAddress = async (address) => {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    const best = data[0];
+    return { lat: Number(best.lat), lng: Number(best.lon) };
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -37,6 +46,8 @@ function AddTruck({ addTruck }) {
     setLoading(true);
 
     try {
+      // Geocode address if provided
+      const geo = formData.address ? await geocodeAddress(formData.address) : null;
       const payload = {
         id: formData.id,
         licensePlate: formData.licensePlate,
@@ -44,10 +55,7 @@ function AddTruck({ addTruck }) {
         type: formData.type,
         status: formData.status,
         userId: formData.userId,
-        location: {
-          latitude: formData.latitude ? Number(formData.latitude) : undefined,
-          longitude: formData.longitude ? Number(formData.longitude) : undefined,
-        },
+        location: geo ? { latitude: geo.lat, longitude: geo.lng } : undefined,
       };
 
       const res = await axios.post("http://localhost:5000/api/collector/trucks", payload);
@@ -60,8 +68,7 @@ function AddTruck({ addTruck }) {
         type: "general",
         status: "available",
         userId: localStorage.getItem("userId"),
-        latitude: "",
-        longitude: "",
+        address: "",
       });
     } catch (err) {
       console.error(err);
@@ -128,26 +135,14 @@ function AddTruck({ addTruck }) {
           <option value="maintenance">Maintenance</option>
         </select>
 
-        <label>Latitude</label>
+        <label>Address</label>
         <input
-          type="number"
-          step="any"
-          name="latitude"
+          type="text"
+          name="address"
           className="input-field"
-          value={formData.latitude}
+          value={formData.address}
           onChange={handleChange}
-          placeholder="e.g. 6.9271"
-        />
-
-        <label>Longitude</label>
-        <input
-          type="number"
-          step="any"
-          name="longitude"
-          className="input-field"
-          value={formData.longitude}
-          onChange={handleChange}
-          placeholder="e.g. 79.8612"
+          placeholder="Enter truck address (for map start)"
         />
 
         {error && <p className="error-message">{error}</p>}

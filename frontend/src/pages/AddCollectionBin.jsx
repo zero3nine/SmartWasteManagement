@@ -12,13 +12,21 @@ function AddCollectionBin({ addBin }) {
     status: "idle",
     pickupTruckId: "",
     lastCollected: new Date().toISOString().slice(0, 10), // today
-    latitude: "",
-    longitude: "",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const geocodeAddress = async (address) => {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    const best = data[0];
+    return { lat: Number(best.lat), lng: Number(best.lon) };
+  };
 
   // Handle input changes
   const handleChange = (e) => {
@@ -48,6 +56,8 @@ function AddCollectionBin({ addBin }) {
     setLoading(true);
 
     try {
+      const geo = formData.location ? await geocodeAddress(formData.location) : null;
+
       const payload = {
         id: formData.id,
         location: formData.location,
@@ -57,10 +67,7 @@ function AddCollectionBin({ addBin }) {
         status: formData.status,
         pickupTruckId: formData.pickupTruckId || undefined,
         lastCollected: formData.lastCollected,
-        coordinates: {
-          latitude: formData.latitude ? Number(formData.latitude) : undefined,
-          longitude: formData.longitude ? Number(formData.longitude) : undefined,
-        },
+        coordinates: geo ? { latitude: geo.lat, longitude: geo.lng } : undefined,
       };
 
       const res = await axios.post("http://localhost:5000/api/admin/bins", payload);
@@ -75,8 +82,6 @@ function AddCollectionBin({ addBin }) {
         status : "idle",
         pickupTruckId: "",
         lastCollected: new Date().toISOString().slice(0, 10),
-        latitude: "",
-        longitude: "",
       });
     } catch (err) {
       console.error(err);
@@ -100,7 +105,7 @@ function AddCollectionBin({ addBin }) {
           placeholder="Enter Bin ID"
         />
 
-        <label>Location</label>
+        <label>Location (address)</label>
         <input
           type="text"
           name="location"
@@ -154,27 +159,7 @@ function AddCollectionBin({ addBin }) {
           onChange={handleChange}
         />
 
-        <label>Latitude</label>
-        <input
-          type="number"
-          step="any"
-          name="latitude"
-          className="input-field"
-          value={formData.latitude}
-          onChange={handleChange}
-          placeholder="e.g. 6.9271"
-        />
-
-        <label>Longitude</label>
-        <input
-          type="number"
-          step="any"
-          name="longitude"
-          className="input-field"
-          value={formData.longitude}
-          onChange={handleChange}
-          placeholder="e.g. 79.8612"
-        />
+        {/* latitude/longitude fields removed; coordinates are auto-geocoded from address */}
 
         {error && <p className="error-message">{error}</p>}
         {success && <p className="success-message">{success}</p>}
