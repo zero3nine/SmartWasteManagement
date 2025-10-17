@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const Bin = require("../models/Bin");
+const Route = require("../models/Route");
 
 // POST /api/admin/bins → add a new bin
 router.post("/bins", async (req, res) => {
@@ -33,15 +34,41 @@ router.patch("/bins/:id", async (req, res) => {
   }
 });
 
-// Update truck by ID
-router.patch("/trucks/:id", async (req, res) => {
+//POST /api/admin/routes → save generated collection routes
+router.post("/routes", async (req, res) => {
   try {
-    const updatedTruck = await Truck.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updatedTruck);
+    const { truckId, bins } = req.body;
+
+    if (!truckId || !bins || !bins.length) {
+      return res.status(400).json({ message: "Truck ID and bins are required." });
+    }
+
+    const newRoute = new Route({
+      truckId,
+      bins,
+    });
+
+    await newRoute.save();
+    res.status(201).json(newRoute);
   } catch (err) {
-    res.status(500).json({ message: "Failed to update truck." });
+    console.error("Error creating route:", err);
+    res.status(500).json({ message: "Failed to save route", error: err.message });
   }
 });
+
+// GET /api/admin/routes → view all saved routes
+router.get("/routes", async (req, res) => {
+  try {
+    const routes = await Route.find()
+      .populate("truckId", "licensePlate status")
+      .populate("bins", "location type status");
+    res.json(routes);
+  } catch (err) {
+    console.error("Error fetching routes:", err);
+    res.status(500).json({ message: "Failed to fetch routes", error: err.message });
+  }
+});
+
 
 
 module.exports = router;

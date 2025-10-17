@@ -52,9 +52,17 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
       for (const route of routes) {
         for (const bin of route.bins) {
           await axios.patch(`http://localhost:5000/api/admin/bins/${bin._id}`, {
-            status: "scheduled"
+            status: "scheduled",
+            pickupTruckId: route.truckId
           });
         }
+      }
+
+      for (const route of routes) {
+        await axios.post("http://localhost:5000/api/admin/routes", {
+          truckId: route.truckId,
+          bins: route.bins.map((b) => b._id),
+        });
       }
 
       setConfirmed(true);

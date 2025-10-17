@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const Truck = require("../models/Truck");
+const Route = require("../models/Route");
+const Bin = require("../models/Bin");
 
 // GET all trucks
 router.get("/trucks", async (req, res) => {
@@ -53,6 +55,63 @@ router.patch("/trucks/:id", async (req, res) => {
     res.json(updatedTruck);
   } catch (err) {
     res.status(500).json({ message: "Failed to update truck." });
+  }
+});
+
+// GET routes assigned to collector's trucks
+router.get("/routes/:userId", async (req, res) => {
+  try {
+    // Find all trucks owned by this collector
+    const collectorTrucks = await Truck.find({ userId: req.params.userId }).select("_id");
+    const truckIds = collectorTrucks.map((t) => t._id);
+
+    // Find routes assigned to those trucks
+    const routes = await Route.find({ truckId: { $in: truckIds } })
+      .populate("truckId", "licensePlate status")
+      .populate("bins", "location type status fillLevel");
+
+    res.json(routes);
+  } catch (err) {
+    console.error("Error fetching collector routes:", err);
+    res.status(500).json({ message: "Failed to fetch assigned routes", error: err.message });
+  }
+});
+
+// PATCH mark a bin as done
+router.patch("/bins/:binId/done", async (req, res) => {
+  try {
+    const { binId } = req.params;
+    const updatedBin = await Bin.findByIdAndUpdate(
+      binId,
+      { status: "idle", fillLevel: 0 },
+      { new: true }
+    );
+    if (!updatedBin) return res.status(404).json({ message: "Bin not found" });
+    res.json(updatedBin);
+  } catch (err) {
+    console.error("Error marking bin done:", err);
+    res.status(500).json({ message: "Failed to update bin", error: err.message });
+  }
+});
+
+
+// PATCH finish route
+router.patch("/routes/finish/:routeId", async (req, res) => {
+  try {
+    // Find route
+    const route = await Route.findById(req.params.routeId);
+    if (!route) return res.status(404).json({ message: "Route not found" });
+
+    // Update truck status to available
+    await Truck.findByIdAndUpdate(route.truckId, { status: "available" });
+
+    // Optionally, remove the route from active list (if you want)
+    await Route.findByIdAndDelete(req.params.routeId);
+
+    res.json({ message: "Route finished successfully" });
+  } catch (err) {
+    console.error("Error finishing route:", err);
+    res.status(500).json({ message: "Failed to finish route", error: err.message });
   }
 });
 

@@ -7,6 +7,7 @@ const BinSchema = new mongoose.Schema({
   fillLevel: { type: Number, default: 0 },
   type: { type: String, enum: ["general", "organic", "recyclable"], default: "general" },
   status: { type: String, enum: ["idle", "scheduled"], default: "idle" },
+  pickupTruckId: { type: String, default: null },
   lastCollected: { type: Date, default: Date.now },
 }, { timestamps: true });
 
