@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
   const [routes, setRoutes] = useState([]);
   const [confirmed, setConfirmed] = useState(false);
+  const [drivingPolylines, setDrivingPolylines] = useState({}); // { [truckId]: LatLng[] }
 
   const cityCenter = useMemo(() => {
     // Fallback map center (Colombo)
@@ -158,6 +159,72 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
     return lat != null && lng != null ? { lat: Number(lat), lng: Number(lng) } : null;
   };
 
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  // Fetch OSRM driving polylines when routes change
+  useEffect(() => {
+    const fetchDrivingPolylines = async () => {
+      const newPolys = {};
+      for (const route of routes) {
+        // Build straight points first; fallback truck start to first bin if missing
+        const straightPoints = [];
+        const firstBinPos = route.bins.length > 0 ? binToLatLng(route.bins[0]) : null;
+        const start = route.truckLocation || firstBinPos;
+        if (start) straightPoints.push(start);
+        route.bins.forEach((b) => {
+          const p = binToLatLng(b);
+          if (p) straightPoints.push(p);
+        });
+        if (straightPoints.length < 2) continue;
+
+        let mergedCoords = [];
+        try {
+          for (let i = 0; i < straightPoints.length - 1; i++) {
+            const a = straightPoints[i];
+            const b = straightPoints[i + 1];
+            const url = `https://router.project-osrm.org/route/v1/driving/${a.lng},${a.lat};${b.lng},${b.lat}?overview=full&geometries=geojson`;
+            console.log("OSRM request:", url);
+            let attempt = 0;
+            let ok = false;
+            while (attempt < 2 && !ok) {
+              attempt++;
+              const res = await fetch(url);
+              if (res.ok) {
+                const data = await res.json();
+                const coords = data?.routes?.[0]?.geometry?.coordinates || [];
+                const asLatLng = coords.map(([lng, lat]) => ({ lat, lng }));
+                if (mergedCoords.length > 0 && asLatLng.length > 0) {
+                  asLatLng.shift();
+                }
+                mergedCoords = mergedCoords.concat(asLatLng);
+                ok = true;
+              } else {
+                console.error("OSRM error", res.status, res.statusText);
+                await sleep(500);
+              }
+            }
+            // Be nice to the demo server
+            await sleep(150);
+          }
+        } catch (e) {
+          console.warn("OSRM failed, will fallback to straight polyline", e);
+          mergedCoords = straightPoints; // fallback straight line
+        }
+        if (!mergedCoords || mergedCoords.length < 2) {
+          mergedCoords = straightPoints; // ensure at least straight line
+        }
+        newPolys[route.truckId] = mergedCoords;
+      }
+      setDrivingPolylines(newPolys);
+    };
+
+    if (routes.length > 0) {
+      fetchDrivingPolylines();
+    } else {
+      setDrivingPolylines({});
+    }
+  }, [routes]);
+
   return (
     <div className="section-card">
       <h2>Generate Collection Routes</h2>
@@ -174,7 +241,7 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
               <h3>Truck: {route.truckPlate}</h3>
               <ul>
                 {route.bins.map((b) => (
-                  <li key={b.id}>
+                  <li key={b._id || b.id}>
                     {b.location} - {b.type} - Fill: {b.fillLevel}% - Size: {b.size}L
                   </li>
                 ))}
@@ -222,17 +289,39 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
             );
           })}
 
-          {/* Show generated routes as polylines */}
+          {/* Show generated routes: baseline straight line always; OSRM overlays when available */}
           {routes.map((route) => {
-            const points = [];
-            if (route.truckLocation) points.push(route.truckLocation);
+            // Straight baseline
+            const straight = [];
+            const firstBinPos = route.bins.length > 0 ? binToLatLng(route.bins[0]) : null;
+            const start = route.truckLocation || firstBinPos;
+            if (start) straight.push(start);
             route.bins.forEach((b) => {
               const p = binToLatLng(b);
-              if (p) points.push(p);
+              if (p) straight.push(p);
             });
-            if (points.length < 2) return null;
+            const hasStraight = straight.length >= 2;
+
+            const driving = drivingPolylines[route.truckId];
+            const hasDriving = driving && driving.length >= 2;
+
             return (
-              <Polyline key={route.truckId} positions={points} pathOptions={{ color: "#ff7f0e" }} />
+              <>
+                {hasStraight && (
+                  <Polyline
+                    key={`straight-${route.truckId}`}
+                    positions={straight}
+                    pathOptions={{ color: "#e5b93c", opacity: 0.9, weight: 4 }}
+                  />
+                )}
+                {hasDriving && (
+                  <Polyline
+                    key={`drive-${route.truckId}`}
+                    positions={driving}
+                    pathOptions={{ color: "#ff4f0e", opacity: 0.95, weight: 5 }}
+                  />
+                )}
+              </>
             );
           })}
         </MapContainer>
