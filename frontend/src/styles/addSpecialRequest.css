@@ -1,0 +1,120 @@
+/* Page layout */
+.add-request-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #f9f9f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Form box */
+.add-request-box {
+  background: #fff;
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+/* Title */
+.add-request-title {
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+  font-weight: 600;
+  color: #111;
+}
+
+/* Input fields date selection*/
+.input-field {
+  width: 93%;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #000;
+}
+
+/* Textarea for special requests */
+.textarea-field {
+  width: 93%;
+  min-height: 120px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 1rem;
+  resize: vertical;
+  transition: border 0.2s;
+}
+
+.textarea-field:focus {
+  outline: none;
+  border-color: #000;
+}
+
+/* Select field */
+.select-field {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 1rem;
+  background: #fff;
+  transition: border 0.2s;
+  appearance: auto;       
+}
+
+.select-field:focus {
+  outline: none;
+  border-color: #000;
+}
+
+/* Submit Button */
+.btn {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: none;
+  border-radius: 12px;
+  background: #111;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn:hover {
+  background: #000;
+}
+
+/* Error message */
+.error-message {
+  margin-top: 1rem;
+  color: #e63946;
+  font-size: 0.9rem;
+}
+
+/* Success message */
+.success-message {
+  margin-top: 1rem;
+  color: #2a9d8f;
+  font-size: 0.9rem;
+}
+
+/* Optional: small note under input */
+.input-note {
+  font-size: 0.8rem;
+  color: #777;
+  margin-bottom: 1rem;
+  text-align: left;
+}

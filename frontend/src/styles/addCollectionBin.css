@@ -1,0 +1,101 @@
+/* Form Card Container */
+.form-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 500px;
+  margin: 0 auto 2rem auto;
+}
+
+/* Form Title */
+.form-card h2 {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #111;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Input Fields */
+.input-field,
+.select-field {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+.input-field:focus,
+.select-field:focus {
+  outline: none;
+  border-color: #111;
+}
+
+/* Labels */
+.form-card label {
+  font-weight: 500;
+  color: #333;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+/* Textarea */
+textarea.input-field {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Buttons */
+.btn,
+.action-btn {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: none;
+  border-radius: 12px;
+  background: #111;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+  margin-top: 0.5rem;
+}
+
+.btn:hover,
+.action-btn:hover {
+  background: #000;
+}
+
+/* Disabled Button */
+.btn:disabled,
+.action-btn:disabled {
+  background: #999;
+  cursor: not-allowed;
+}
+
+/* Error / Success Messages */
+.error-message,
+.success-message {
+  font-size: 0.9rem;
+  margin-top: 0.8rem;
+  text-align: center;
+}
+
+.error-message {
+  color: #e63946;
+}
+
+.success-message {
+  color: #2a9d8f;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .form-card {
+    padding: 1.5rem;
+  }
+}

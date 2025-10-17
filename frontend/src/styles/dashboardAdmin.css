@@ -1,0 +1,144 @@
+/* Container */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f9f9f9;
+  min-height: 100vh;
+}
+
+/* Header */
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.dashboard-header p {
+  color: #555;
+  font-size: 1rem;
+}
+
+/* Tabs */
+.admin-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.tab-btn {
+  padding: 0.7rem 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  background: #f0f0f0;
+}
+
+.tab-btn.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+/* Cards / Forms */
+.section-card,
+.form-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+h2 {
+  margin-bottom: 1.5rem;
+  color: #111;
+}
+
+/* Table for Bins / Routes */
+.requests-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.requests-table th,
+.requests-table td {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid #ddd;
+}
+
+.requests-table th {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+.requests-table tr:hover {
+  background: #f9f9f9;
+}
+
+/* Form Buttons */
+.btn,
+.action-btn {
+  padding: 0.9rem 1.2rem;
+  border: none;
+  border-radius: 12px;
+  background: #111;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn:hover,
+.action-btn:hover {
+  background: #000;
+}
+
+/* Input Fields */
+.input-field,
+.select-field {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: border 0.2s;
+}
+
+.input-field:focus,
+.select-field:focus {
+  outline: none;
+  border-color: #000;
+}
+
+/* Error Messages */
+.error-message {
+  margin-top: 0.8rem;
+  color: #e63946;
+  font-size: 0.9rem;
+}
+
+/* Route Cards */
+.route-card {
+  background: #f7f7f7;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-left: 5px solid #111;
+}
