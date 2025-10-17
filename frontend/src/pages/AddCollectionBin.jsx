@@ -18,6 +18,16 @@ function AddCollectionBin({ addBin }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const geocodeAddress = async (address) => {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    const best = data[0];
+    return { lat: Number(best.lat), lng: Number(best.lon) };
+  };
+
   // Handle input changes
   const handleChange = (e) => {
     setFormData({
@@ -46,7 +56,21 @@ function AddCollectionBin({ addBin }) {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/admin/bins", formData);
+      const geo = formData.location ? await geocodeAddress(formData.location) : null;
+
+      const payload = {
+        id: formData.id,
+        location: formData.location,
+        size: formData.size ? Number(formData.size) : undefined,
+        fillLevel: Number(formData.fillLevel),
+        type: formData.type,
+        status: formData.status,
+        pickupTruckId: formData.pickupTruckId || undefined,
+        lastCollected: formData.lastCollected,
+        coordinates: geo ? { latitude: geo.lat, longitude: geo.lng } : undefined,
+      };
+
+      const res = await axios.post("http://localhost:5000/api/admin/bins", payload);
       addBin(res.data); // Update parent state
       setSuccess("Bin added successfully!");
       setFormData({
@@ -81,7 +105,7 @@ function AddCollectionBin({ addBin }) {
           placeholder="Enter Bin ID"
         />
 
-        <label>Location</label>
+        <label>Location (address)</label>
         <input
           type="text"
           name="location"
@@ -133,6 +157,8 @@ function AddCollectionBin({ addBin }) {
           value={formData.lastCollected}
           onChange={handleChange}
         />
+
+        {/* latitude/longitude fields removed; coordinates are auto-geocoded from address */}
 
         {error && <p className="error-message">{error}</p>}
         {success && <p className="success-message">{success}</p>}

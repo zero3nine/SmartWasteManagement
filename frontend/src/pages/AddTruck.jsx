@@ -10,10 +10,21 @@ function AddTruck({ addTruck }) {
     type: "General",
     status: "Available",
     userId: localStorage.getItem("userId"),
+    address: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const geocodeAddress = async (address) => {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    const best = data[0];
+    return { lat: Number(best.lat), lng: Number(best.lon) };
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -35,16 +46,35 @@ function AddTruck({ addTruck }) {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/collector/trucks", formData);
+      // Geocode address if provided
+      const geo = formData.address ? await geocodeAddress(formData.address) : null;
+      const payload = {
+        id: formData.id,
+        licensePlate: formData.licensePlate,
+        capacity: Number(formData.capacity),
+        type: formData.type,
+        status: formData.status,
+        userId: formData.userId,
+        location: geo ? { latitude: geo.lat, longitude: geo.lng } : undefined,
+      };
+
+      const res = await axios.post("http://localhost:5000/api/collector/trucks", payload);
       addTruck(res.data);
       setSuccess("Truck added successfully!");
       setFormData({
         id: "",
         licensePlate: "",
         capacity: "",
+<<<<<<< HEAD
+        type: "general",
+        status: "available",
+        userId: localStorage.getItem("userId"),
+        address: "",
+=======
         type: "General",
         status: "Available",
         userId: localStorage.getItem("userId"),
+>>>>>>> origin/main
       });
     } catch (err) {
       console.error(err);
@@ -110,6 +140,16 @@ function AddTruck({ addTruck }) {
           <option value="On Duty">On Duty</option>
           <option value="Maintenance">Maintenance</option>
         </select>
+
+        <label>Address</label>
+        <input
+          type="text"
+          name="address"
+          className="input-field"
+          value={formData.address}
+          onChange={handleChange}
+          placeholder="Enter truck address (for map start)"
+        />
 
         {error && <p className="error-message">{error}</p>}
         {success && <p className="success-message">{success}</p>}
