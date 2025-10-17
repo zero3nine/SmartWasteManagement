@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import AddTruck from "./AddTruck";
+import AssignedRoutes from "./AssignedRoutes";
 import axios from "axios";
 import "../styles/dashboardCollector.css";
 
 function CollectorDashboard() {
-
   const userId = localStorage.getItem("userId");
 
   const [activeTab, setActiveTab] = useState("addTruck");
   const [trucks, setTrucks] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch existing trucks
+  // Fetch trucks belonging to this collector
   const fetchTrucks = async () => {
     setLoading(true);
     try {
@@ -36,7 +36,7 @@ function CollectorDashboard() {
     <div className="dashboard-container">
       <header className="dashboard-header">
         <h1>Collector Dashboard</h1>
-        <p>Manage your trucks and collection tasks.</p>
+        <p>Manage your trucks and assigned collection routes.</p>
       </header>
 
       {/* Tabs */}
@@ -53,10 +53,19 @@ function CollectorDashboard() {
         >
           View Trucks
         </button>
+        <button
+          className={`tab-btn ${activeTab === "assignedRoutes" ? "active" : ""}`}
+          onClick={() => setActiveTab("assignedRoutes")}
+        >
+          Assigned Routes
+        </button>
       </div>
 
       <div className="tab-content">
+        {/* Add Truck Section */}
         {activeTab === "addTruck" && <AddTruck addTruck={addTruckHandler} />}
+
+        {/* Truck List Section */}
         {activeTab === "trucksList" && (
           <div className="section-card">
             <h2>Registered Trucks</h2>
@@ -88,6 +97,13 @@ function CollectorDashboard() {
             ) : (
               <p>No trucks registered yet.</p>
             )}
+          </div>
+        )}
+
+        {/* Assigned Routes Section */}
+        {activeTab === "assignedRoutes" && (
+          <div className="section-card">
+            <AssignedRoutes />
           </div>
         )}
       </div>

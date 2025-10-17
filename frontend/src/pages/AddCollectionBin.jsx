@@ -6,8 +6,11 @@ function AddCollectionBin({ addBin }) {
   const [formData, setFormData] = useState({
     id: "",
     location: "",
+    size: "",
     fillLevel: 0,
     type: "general",
+    status: "idle",
+    pickupTruckId: "",
     lastCollected: new Date().toISOString().slice(0, 10), // today
   });
 
@@ -49,8 +52,11 @@ function AddCollectionBin({ addBin }) {
       setFormData({
         id: "",
         location: "",
+        size: "",
         fillLevel: 0,
         type: "general",
+        status : "idle",
+        pickupTruckId: "",
         lastCollected: new Date().toISOString().slice(0, 10),
       });
     } catch (err) {
