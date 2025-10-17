@@ -6,6 +6,8 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
   const [routes, setRoutes] = useState([]);
   const [routeCoords, setRouteCoords] = useState([]); // [{ truck, bins:[], requests:[] }]
   const [routeLines, setRouteLines] = useState([]); // [[ [lat,lng], ... ]]
+  const [routeMetrics, setRouteMetrics] = useState([]); // [{ distance, duration, capacityUsage }]
+  const [unassignedCount, setUnassignedCount] = useState(0);
   const [confirmed, setConfirmed] = useState(false);
   const [specialRequests, setSpecialRequests] = useState([]);
 
@@ -37,10 +39,22 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
   const generateRoutes = () => {
     const availableTrucks = trucks.filter((t) => t.status === "Available");
 
-    // Only collect bins that are full and idle
-    const binsToCollect = bins.filter(
-      (b) => b.fillLevel >= 90 && b.status === "Idle"
-    );
+    // Candidate bins: >= 90% and Idle
+    const highFillIdle = bins.filter((b) => b.fillLevel >= 90 && b.status === "Idle");
+
+    // 48h overdue bins (include even if not 90%)
+    const now = Date.now();
+    const overdue48h = bins.filter((b) => {
+      if (!b.lastCollected) return false;
+      const last = new Date(b.lastCollected).getTime();
+      const hours = (now - last) / (1000 * 60 * 60);
+      return hours >= 48 && b.status === "Idle";
+    });
+
+    // Merge and dedupe by _id
+    const byId = new Map();
+    [...highFillIdle, ...overdue48h].forEach((b) => byId.set(b._id, b));
+    const binsToCollect = Array.from(byId.values());
 
     const remainingBins = [...binsToCollect];
     const remainingRequests = [...specialRequests];
@@ -57,7 +71,7 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
           bin.type === `${truck.type} Waste` &&
           truckLoad + bin.size <= truck.capacity
         ) {
-          assignedBins.push(bin);
+          assignedBins.push({ ...bin, __selected: true });
           truckLoad += bin.size;
           remainingBins.splice(remainingBins.indexOf(bin), 1);
         }
@@ -86,6 +100,7 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
     }
 
     setRoutes(assignedRoutes);
+    setUnassignedCount(remainingBins.length);
     // After creating assigned routes, geocode addresses to build map coordinates
     buildRouteCoordinates(assignedRoutes);
   };
@@ -102,6 +117,7 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
   const buildRouteCoordinates = async (assignedRoutes) => {
     const results = [];
     const polyResults = [];
+    const metricsResults = [];
     for (const route of assignedRoutes) {
       // truck address may be unavailable; skip if not
       const truck = trucks.find((t) => t._id === route.truckId);
@@ -132,17 +148,29 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
           const { data } = await axios.get(`https://router.project-osrm.org/route/v1/driving/${coordsParam}`, {
             params: { overview: 'full', geometries: 'geojson' },
           });
-          const line = data?.routes?.[0]?.geometry?.coordinates?.map(([lng, lat]) => [lat, lng]) || [];
+          const r0 = data?.routes?.[0];
+          const line = r0?.geometry?.coordinates?.map(([lng, lat]) => [lat, lng]) || [];
           polyResults.push(line);
+          metricsResults.push({ distance: r0?.distance || 0, duration: r0?.duration || 0 });
         } catch (_) {
           polyResults.push([]);
+          metricsResults.push({ distance: 0, duration: 0 });
         }
       } else {
         polyResults.push([]);
+        metricsResults.push({ distance: 0, duration: 0 });
       }
     }
     setRouteCoords(results);
     setRouteLines(polyResults);
+    // Add capacity usage metric
+    const withCapacity = assignedRoutes.map((r, idx) => {
+      const truck = trucks.find((t) => t._id === r.truckId);
+      const used = r.bins.reduce((sum, b) => sum + (b.__selected ? (b.size || 0) : 0), 0);
+      const capacityUsage = truck?.capacity ? Math.round((used / truck.capacity) * 100) : 0;
+      return { ...metricsResults[idx], capacityUsage };
+    });
+    setRouteMetrics(withCapacity);
   };
 
   const confirmRoutes = async () => {
@@ -154,7 +182,7 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
         });
 
         // Mark assigned bins as scheduled
-        for (const bin of route.bins) {
+        for (const bin of route.bins.filter((b) => b.__selected)) {
           await axios.patch(`http://localhost:5000/api/admin/bins/${bin._id}`, {
             status: "Scheduled",
             pickupTruckId: route.truckId,
@@ -172,7 +200,7 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
         // Save generated route record
         await axios.post("http://localhost:5000/api/admin/routes", {
           truckId: route.truckId,
-          bins: route.bins.map((b) => b._id),
+          bins: route.bins.filter((b) => b.__selected).map((b) => b._id),
           specialRequests: route.specialRequests.map((r) => r._id),
         });
       }
@@ -199,16 +227,36 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
 
       {routes.length > 0 && (
         <div className="routes-list">
-          {routes.map((route) => (
+          {routes.map((route, idx) => (
             <div key={route.truckId} className="route-card">
               <h3>Truck: {route.truckPlate}</h3>
+              {routeMetrics[idx] && (
+                <p>
+                  Distance: {(routeMetrics[idx].distance / 1000).toFixed(1)} km · ETA: {(routeMetrics[idx].duration / 60).toFixed(0)} min · Capacity: {routeMetrics[idx].capacityUsage}%
+                </p>
+              )}
 
               <h4>Assigned Bins</h4>
               {route.bins.length > 0 ? (
                 <ul>
                   {route.bins.map((b) => (
                     <li key={b._id}>
-                      🗑 {b.location} — {b.type} — Fill: {b.fillLevel}% — Size: {b.size}L
+                      <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={!!b.__selected}
+                          onChange={(e) => {
+                            setRoutes((prev) => prev.map((r) => (
+                              r.truckId === route.truckId
+                                ? { ...r, bins: r.bins.map((bx) => bx._id === b._id ? { ...bx, __selected: e.target.checked } : bx) }
+                                : r
+                            )));
+                          }}
+                        />
+                        <span>
+                          🗑 {b.location} — {b.type} — Fill: {b.fillLevel}% — Size: {b.size}L
+                        </span>
+                      </label>
                     </li>
                   ))}
                 </ul>
@@ -247,6 +295,12 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
               routeLine={routeLines[idx]}
             />
           ))}
+
+          {unassignedCount > 0 && (
+            <p style={{ marginTop: 12 }}>
+              Note: {unassignedCount} bin(s) could not be assigned due to capacity/availability. Consider adding more trucks or splitting routes. Overdue (≥48h) and high-fill bins were prioritized.
+            </p>
+          )}
         </div>
       )}
     </div>
