@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import AddCollectionBin from "./AddCollectionBin";
+import ManageSpecialRequests from "./ManageSpecialRequests";
 import GenerateRoutes from "./GenerateRoutes";
 import "../styles/dashboardAdmin.css";
 
 function AdminDashboard() {
   const [bins, setBins] = useState([]);
   const [trucks, setTrucks] = useState([]);
-  const [activeTab, setActiveTab] = useState("addBin");
+  const [activeTab, setActiveTab] = useState("specialRequests");
   const [loadingBins, setLoadingBins] = useState(true);
 
   // Fetch bins from backend
@@ -54,6 +55,12 @@ function AdminDashboard() {
       {/* Tabs */}
       <div className="admin-tabs">
         <button
+          className={`tab-btn ${activeTab === "specialRequests" ? "active" : ""}`}
+          onClick={() => setActiveTab("specialRequests")}
+        >
+          Special Requests
+        </button>
+        <button
           className={`tab-btn ${activeTab === "addBin" ? "active" : ""}`}
           onClick={() => setActiveTab("addBin")}
         >
@@ -74,6 +81,7 @@ function AdminDashboard() {
       </div>
 
       <div className="tab-content">
+        {activeTab === "specialRequests" && <ManageSpecialRequests />}
         {activeTab === "addBin" && <AddCollectionBin addBin={addBinHandler} />}
         {activeTab === "binsList" && (
           <div className="section-card">

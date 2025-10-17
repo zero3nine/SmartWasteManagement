@@ -8,8 +8,8 @@ function AddCollectionBin({ addBin }) {
     location: "",
     size: "",
     fillLevel: 0,
-    type: "general",
-    status: "idle",
+    type: "General Waste",
+    status: "Idle",
     pickupTruckId: "",
     lastCollected: new Date().toISOString().slice(0, 10), // today
   });
@@ -78,8 +78,8 @@ function AddCollectionBin({ addBin }) {
         location: "",
         size: "",
         fillLevel: 0,
-        type: "general",
-        status : "idle",
+        type: "General Waste",
+        status: "Idle",
         pickupTruckId: "",
         lastCollected: new Date().toISOString().slice(0, 10),
       });
@@ -145,9 +145,8 @@ function AddCollectionBin({ addBin }) {
           value={formData.type}
           onChange={handleChange}
         >
-          <option value="general">General</option>
-          <option value="organic">Organic</option>
-          <option value="recyclable">Recyclable</option>
+          <option value="General Waste">General Waste</option>
+          <option value="Special Waste">Special Waste</option>
         </select>
 
         <label>Last Collected Date</label>

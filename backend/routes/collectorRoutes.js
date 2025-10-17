@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const Truck = require("../models/Truck");
 const Route = require("../models/Route");
+const SpecialRequest = require("../models/SpecialRequest");
 const Bin = require("../models/Bin");
 
 // GET all trucks
@@ -68,7 +69,8 @@ router.get("/routes/:userId", async (req, res) => {
     // Find routes assigned to those trucks
     const routes = await Route.find({ truckId: { $in: truckIds } })
       .populate("truckId", "licensePlate status")
-      .populate("bins", "location type status fillLevel");
+      .populate("bins", "location type status fillLevel")
+      .populate("specialRequests", "address type estimatedSize status");
 
     res.json(routes);
   } catch (err) {
@@ -83,7 +85,7 @@ router.patch("/bins/:binId/done", async (req, res) => {
     const { binId } = req.params;
     const updatedBin = await Bin.findByIdAndUpdate(
       binId,
-      { status: "idle", fillLevel: 0 },
+      { status: "Idle", fillLevel: 0 },
       { new: true }
     );
     if (!updatedBin) return res.status(404).json({ message: "Bin not found" });
@@ -102,10 +104,9 @@ router.patch("/routes/finish/:routeId", async (req, res) => {
     const route = await Route.findById(req.params.routeId);
     if (!route) return res.status(404).json({ message: "Route not found" });
 
-    // Update truck status to available
-    await Truck.findByIdAndUpdate(route.truckId, { status: "available" });
+    // Update truck status to Available
+    await Truck.findByIdAndUpdate(route.truckId, { status: "Available" });
 
-    // Optionally, remove the route from active list (if you want)
     await Route.findByIdAndDelete(req.params.routeId);
 
     res.json({ message: "Route finished successfully" });

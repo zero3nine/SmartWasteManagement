@@ -7,8 +7,8 @@ function AddTruck({ addTruck }) {
     id: "",
     licensePlate: "",
     capacity: "",
-    type: "general",
-    status: "available",
+    type: "General",
+    status: "Available",
     userId: localStorage.getItem("userId"),
     address: "",
   });
@@ -65,10 +65,16 @@ function AddTruck({ addTruck }) {
         id: "",
         licensePlate: "",
         capacity: "",
+<<<<<<< HEAD
         type: "general",
         status: "available",
         userId: localStorage.getItem("userId"),
         address: "",
+=======
+        type: "General",
+        status: "Available",
+        userId: localStorage.getItem("userId"),
+>>>>>>> origin/main
       });
     } catch (err) {
       console.error(err);
@@ -119,8 +125,8 @@ function AddTruck({ addTruck }) {
           value={formData.type}
           onChange={handleChange}
         >
-          <option value="general">General</option>
-          <option value="special">Special</option>
+          <option value="General">General</option>
+          <option value="Special">Special</option>
         </select>
 
         <label>Status</label>
@@ -130,9 +136,9 @@ function AddTruck({ addTruck }) {
           value={formData.status}
           onChange={handleChange}
         >
-          <option value="available">Available</option>
-          <option value="on-duty">On Duty</option>
-          <option value="maintenance">Maintenance</option>
+          <option value="Available">Available</option>
+          <option value="On Duty">On Duty</option>
+          <option value="Maintenance">Maintenance</option>
         </select>
 
         <label>Address</label>
