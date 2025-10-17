@@ -10,6 +10,7 @@ function AddTruck({ addTruck }) {
     type: "General",
     status: "Available",
     userId: localStorage.getItem("userId"),
+    address: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -45,6 +46,7 @@ function AddTruck({ addTruck }) {
         type: "General",
         status: "Available",
         userId: localStorage.getItem("userId"),
+        address: "",
       });
     } catch (err) {
       console.error(err);
@@ -86,6 +88,16 @@ function AddTruck({ addTruck }) {
           value={formData.capacity}
           onChange={handleChange}
           placeholder="Enter Capacity"
+        />
+
+        <label>Address</label>
+        <input
+          type="text"
+          name="address"
+          className="input-field"
+          value={formData.address}
+          onChange={handleChange}
+          placeholder="Enter truck base/current address"
         />
 
         <label>Type</label>

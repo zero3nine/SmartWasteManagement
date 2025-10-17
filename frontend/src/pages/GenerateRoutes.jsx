@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import RouteMap from "../components/RouteMap";
 
 function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
   const [routes, setRoutes] = useState([]);
+  const [routeCoords, setRouteCoords] = useState([]); // [{ truck, bins:[], requests:[] }]
+  const [routeLines, setRouteLines] = useState([]); // [[ [lat,lng], ... ]]
   const [confirmed, setConfirmed] = useState(false);
   const [specialRequests, setSpecialRequests] = useState([]);
 
@@ -83,6 +86,63 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
     }
 
     setRoutes(assignedRoutes);
+    // After creating assigned routes, geocode addresses to build map coordinates
+    buildRouteCoordinates(assignedRoutes);
+  };
+
+  const geocode = async (address) => {
+    try {
+      const { data } = await axios.get(`http://localhost:5000/api/geocode`, { params: { address } });
+      return data; // { lat, lng }
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const buildRouteCoordinates = async (assignedRoutes) => {
+    const results = [];
+    const polyResults = [];
+    for (const route of assignedRoutes) {
+      // truck address may be unavailable; skip if not
+      const truck = trucks.find((t) => t._id === route.truckId);
+      const truckCoords = truck?.address ? await geocode(truck.address) : null;
+
+      const binCoords = [];
+      for (const b of route.bins) {
+        const coords = await geocode(b.location);
+        if (coords) binCoords.push(coords);
+      }
+
+      const requestCoords = [];
+      for (const r of route.specialRequests) {
+        if (!r.address) continue;
+        const coords = await geocode(r.address);
+        if (coords) requestCoords.push(coords);
+      }
+
+      results.push({ truck: truckCoords, bins: binCoords, requests: requestCoords });
+
+      // Build road-following route using OSRM if we have at least truck + 1 bin
+      const stops = [];
+      if (truckCoords) stops.push([truckCoords.lng, truckCoords.lat]);
+      for (const b of binCoords) stops.push([b.lng, b.lat]);
+      if (stops.length >= 2) {
+        try {
+          const coordsParam = stops.map((p) => p.join(",")).join(";");
+          const { data } = await axios.get(`https://router.project-osrm.org/route/v1/driving/${coordsParam}`, {
+            params: { overview: 'full', geometries: 'geojson' },
+          });
+          const line = data?.routes?.[0]?.geometry?.coordinates?.map(([lng, lat]) => [lat, lng]) || [];
+          polyResults.push(line);
+        } catch (_) {
+          polyResults.push([]);
+        }
+      } else {
+        polyResults.push([]);
+      }
+    }
+    setRouteCoords(results);
+    setRouteLines(polyResults);
   };
 
   const confirmRoutes = async () => {
@@ -176,6 +236,17 @@ function GenerateRoutes({ bins, trucks, refreshBins, refreshTrucks }) {
               Confirm Routes
             </button>
           )}
+
+          {/* Maps for each route */}
+          {routeCoords.map((rc, idx) => (
+            <RouteMap
+              key={`map-${idx}`}
+              truckCoords={rc.truck}
+              binCoords={rc.bins}
+              requestCoords={rc.requests}
+              routeLine={routeLines[idx]}
+            />
+          ))}
         </div>
       )}
     </div>
