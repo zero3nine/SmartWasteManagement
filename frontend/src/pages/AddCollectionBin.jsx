@@ -12,6 +12,8 @@ function AddCollectionBin({ addBin }) {
     status: "idle",
     pickupTruckId: "",
     lastCollected: new Date().toISOString().slice(0, 10), // today
+    latitude: "",
+    longitude: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -46,7 +48,22 @@ function AddCollectionBin({ addBin }) {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/admin/bins", formData);
+      const payload = {
+        id: formData.id,
+        location: formData.location,
+        size: formData.size ? Number(formData.size) : undefined,
+        fillLevel: Number(formData.fillLevel),
+        type: formData.type,
+        status: formData.status,
+        pickupTruckId: formData.pickupTruckId || undefined,
+        lastCollected: formData.lastCollected,
+        coordinates: {
+          latitude: formData.latitude ? Number(formData.latitude) : undefined,
+          longitude: formData.longitude ? Number(formData.longitude) : undefined,
+        },
+      };
+
+      const res = await axios.post("http://localhost:5000/api/admin/bins", payload);
       addBin(res.data); // Update parent state
       setSuccess("Bin added successfully!");
       setFormData({
@@ -58,6 +75,8 @@ function AddCollectionBin({ addBin }) {
         status : "idle",
         pickupTruckId: "",
         lastCollected: new Date().toISOString().slice(0, 10),
+        latitude: "",
+        longitude: "",
       });
     } catch (err) {
       console.error(err);
@@ -133,6 +152,28 @@ function AddCollectionBin({ addBin }) {
           className="input-field"
           value={formData.lastCollected}
           onChange={handleChange}
+        />
+
+        <label>Latitude</label>
+        <input
+          type="number"
+          step="any"
+          name="latitude"
+          className="input-field"
+          value={formData.latitude}
+          onChange={handleChange}
+          placeholder="e.g. 6.9271"
+        />
+
+        <label>Longitude</label>
+        <input
+          type="number"
+          step="any"
+          name="longitude"
+          className="input-field"
+          value={formData.longitude}
+          onChange={handleChange}
+          placeholder="e.g. 79.8612"
         />
 
         {error && <p className="error-message">{error}</p>}

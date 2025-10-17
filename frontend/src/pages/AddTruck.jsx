@@ -10,6 +10,8 @@ function AddTruck({ addTruck }) {
     type: "general",
     status: "available",
     userId: localStorage.getItem("userId"),
+    latitude: "",
+    longitude: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -35,7 +37,20 @@ function AddTruck({ addTruck }) {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/collector/trucks", formData);
+      const payload = {
+        id: formData.id,
+        licensePlate: formData.licensePlate,
+        capacity: Number(formData.capacity),
+        type: formData.type,
+        status: formData.status,
+        userId: formData.userId,
+        location: {
+          latitude: formData.latitude ? Number(formData.latitude) : undefined,
+          longitude: formData.longitude ? Number(formData.longitude) : undefined,
+        },
+      };
+
+      const res = await axios.post("http://localhost:5000/api/collector/trucks", payload);
       addTruck(res.data);
       setSuccess("Truck added successfully!");
       setFormData({
@@ -43,6 +58,10 @@ function AddTruck({ addTruck }) {
         licensePlate: "",
         capacity: "",
         type: "general",
+        status: "available",
+        userId: localStorage.getItem("userId"),
+        latitude: "",
+        longitude: "",
       });
     } catch (err) {
       console.error(err);
@@ -108,6 +127,28 @@ function AddTruck({ addTruck }) {
           <option value="on-duty">On Duty</option>
           <option value="maintenance">Maintenance</option>
         </select>
+
+        <label>Latitude</label>
+        <input
+          type="number"
+          step="any"
+          name="latitude"
+          className="input-field"
+          value={formData.latitude}
+          onChange={handleChange}
+          placeholder="e.g. 6.9271"
+        />
+
+        <label>Longitude</label>
+        <input
+          type="number"
+          step="any"
+          name="longitude"
+          className="input-field"
+          value={formData.longitude}
+          onChange={handleChange}
+          placeholder="e.g. 79.8612"
+        />
 
         {error && <p className="error-message">{error}</p>}
         {success && <p className="success-message">{success}</p>}
