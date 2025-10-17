@@ -208,6 +208,39 @@ td:nth-child(7):contains("Rejected") {
   gap: 0.5rem;
 }
 
+/* Smaller popup for entering cost */
+.popup-content.small {
+  max-width: 350px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* Input field inside popup */
+.popup-content.small input[type="number"] {
+  width: 80%;
+  padding: 0.5rem 0.8rem;
+  margin: 1rem 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.popup-content.small input[type="number"]:focus {
+  outline: none;
+  border-color: #45c55a;
+  box-shadow: 0 0 5px rgba(69, 197, 90, 0.4);
+}
+
+/* Buttons inside small popup */
+.popup-content.small .approve-btn,
+.popup-content.small .close-btn {
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+}
+
+
 /* Animation */
 @keyframes fadeIn {
   from {
